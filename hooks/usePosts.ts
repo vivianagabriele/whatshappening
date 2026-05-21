@@ -28,7 +28,11 @@ export function usePosts(neighborhoodId?: string) {
     }
 
     const { data, error } = await query
-    if (error) { console.error(error); return }
+
+    if (error) {
+      console.error('fetchPosts error:', JSON.stringify(error))
+      return
+    }
 
     const enriched = (data || []).map(post => ({
       ...post,
@@ -51,7 +55,6 @@ export function usePosts(neighborhoodId?: string) {
     setLoading(true)
     fetchPosts().finally(() => setLoading(false))
 
-    // Realtime subscription — new posts appear instantly
     const channel = supabase
       .channel(`posts:${neighborhoodId ?? 'all'}`)
       .on('postgres_changes', {
@@ -59,9 +62,7 @@ export function usePosts(neighborhoodId?: string) {
         schema: 'public',
         table: 'posts',
         ...(neighborhoodId ? { filter: `neighborhood_id=eq.${neighborhoodId}` } : {}),
-      }, () => {
-        fetchPosts() // re-fetch to get joined data
-      })
+      }, () => fetchPosts())
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -128,13 +129,12 @@ export function useNeighborhoodHeat(cityId?: string) {
     const fetch = async () => {
       let query = supabase.from('neighborhood_heat').select('*')
       if (cityId) query = query.eq('city_id', cityId)
-      const { data } = await query
+      const { data, error } = await query
+      if (error) console.error('neighborhood_heat error:', JSON.stringify(error))
       setNeighborhoods(data || [])
       setLoading(false)
     }
     fetch()
-
-    // Refresh heat every 30s
     const interval = setInterval(fetch, 30000)
     return () => clearInterval(interval)
   }, [cityId])
