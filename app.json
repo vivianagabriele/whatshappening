@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "what's happening",
+    "slug": "whats-happening",
+    "version": "1.0.0",
+    "scheme": "whatshappening",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.whatshappening.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to suggest nearby neighborhoods",
+        "NSCameraUsageDescription": "We use your camera to capture videos and photos",
+        "NSMicrophoneUsageDescription": "We use your microphone to record video posts",
+        "NSPhotoLibraryUsageDescription": "We access your photo library to share photos and videos"
+      }
+    },
+    "android": {
+      "package": "com.whatshappening.app",
+      "permissions": ["ACCESS_FINE_LOCATION","ACCESS_COARSE_LOCATION","CAMERA","READ_EXTERNAL_STORAGE"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      ["expo-camera", {"cameraPermission": "Allow what's happening to use your camera"}],
+      ["expo-image-picker", {"photosPermission": "Allow what's happening to access your photos"}]
+    ],
+    "experiments": { "typedRoutes": true }
+  }
+}
