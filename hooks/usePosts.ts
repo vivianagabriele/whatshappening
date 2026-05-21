@@ -28,7 +28,6 @@ export function usePosts(neighborhoodId?: string) {
     }
 
     const { data, error } = await query
-
     if (error) {
       console.error('fetchPosts error:', JSON.stringify(error))
       return
@@ -55,6 +54,7 @@ export function usePosts(neighborhoodId?: string) {
     setLoading(true)
     fetchPosts().finally(() => setLoading(false))
 
+    // Must add all .on() listeners BEFORE calling .subscribe()
     const channel = supabase
       .channel(`posts:${neighborhoodId ?? 'all'}`)
       .on('postgres_changes', {
@@ -73,9 +73,16 @@ export function usePosts(neighborhoodId?: string) {
         schema: 'public',
         table: 'reactions',
       }, () => fetchPosts())
-      .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('Realtime connected')
+      }
+    })
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [neighborhoodId, fetchPosts])
 
   const toggleReaction = async (postId: string, type: ReactionType) => {
@@ -84,7 +91,6 @@ export function usePosts(neighborhoodId?: string) {
     const post = posts.find(p => p.id === postId)
     const hasReaction = post?.my_reactions?.includes(type)
 
-    // Optimistic update
     setPosts(prev => prev.map(p => {
       if (p.id !== postId) return p
       const reactions = p.reactions || []
@@ -105,16 +111,10 @@ export function usePosts(neighborhoodId?: string) {
     }))
 
     if (hasReaction) {
-      await supabase
-        .from('reactions')
-        .delete()
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .eq('type', type)
+      await supabase.from('reactions').delete()
+        .eq('post_id', postId).eq('user_id', user.id).eq('type', type)
     } else {
-      await supabase
-        .from('reactions')
-        .insert({ post_id: postId, user_id: user.id, type })
+      await supabase.from('reactions').insert({ post_id: postId, user_id: user.id, type })
     }
   }
 
