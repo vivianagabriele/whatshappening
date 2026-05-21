@@ -6,6 +6,7 @@
     "scheme": "whatshappening",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.whatshappening.app",
@@ -22,9 +23,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#fafaf8"
       }
-    },
-    "web": {
-      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
